@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Demo Checkout (not real)</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/styles.css" />
+</head>
+<body class="min-h-screen flex items-center justify-center px-4">
+  <div class="max-w-md w-full bg-white rounded-2xl shadow-md p-8 text-center">
+    <p class="demo-banner rounded-lg px-3 py-2 text-sm font-semibold mb-4 inline-block">⚠️ DEMO MODE — no real Paystack account is connected</p>
+    <h1 class="heading-font text-xl font-bold mb-2">This stands in for the Paystack payment page</h1>
+    <p class="text-gray-600 mb-6">In production, this is where Paystack's real, secure checkout would appear.
+       Click below to simulate a successful test payment.</p>
+    <button id="pay-btn" class="btn-primary rounded-xl px-6 py-3 font-bold w-full">Simulate Successful Payment</button>
+  </div>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const reference = params.get("reference");
+  document.getElementById("pay-btn").addEventListener("click", () => {
+    window.location.href = `/success.html?reference=${encodeURIComponent(reference)}`;
+  });
+</script>
+</body>
+</html>

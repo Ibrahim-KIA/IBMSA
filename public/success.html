@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Registration Confirmed — IBM School Skill Acquisition Program</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/styles.css" />
+<link rel="icon" href="/images/logo.png" />
+</head>
+<body class="min-h-screen flex items-center justify-center px-4">
+  <div class="max-w-lg w-full bg-white rounded-2xl shadow-md p-8 text-center" id="content">
+    <img src="/images/logo.png" alt="IBM School logo" class="h-16 w-16 object-contain mx-auto mb-4" />
+    <div id="loading">
+      <p class="text-gray-600">Confirming your payment, please wait...</p>
+    </div>
+    <div id="result" class="hidden"></div>
+  </div>
+
+<script>
+(async function () {
+  const params = new URLSearchParams(window.location.search);
+  const reference = params.get("reference");
+  const loading = document.getElementById("loading");
+  const result = document.getElementById("result");
+
+  function nairaFromKobo(kobo) { return "₦" + (kobo / 100).toLocaleString("en-NG"); }
+
+  if (!reference) {
+    loading.classList.add("hidden");
+    result.classList.remove("hidden");
+    result.innerHTML = `<p class="text-red-600 font-semibold">No payment reference found.</p>`;
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/verify?reference=${encodeURIComponent(reference)}`);
+    const data = await res.json();
+    loading.classList.add("hidden");
+    result.classList.remove("hidden");
+
+    if (data.status === "paid") {
+      const courseList = data.courses.map(c => `<li>${c.name} (${c.duration})</li>`).join("");
+      result.innerHTML = `
+        <h1 class="heading-font text-2xl font-bold text-[var(--ibm-green)] mb-2">You're registered! 🎉</h1>
+        <p class="text-gray-600 mb-4">Thank you, ${data.fullName}. Your spot is confirmed for:</p>
+        <ul class="text-left inline-block mb-4">${courseList}</ul>
+        <p class="font-semibold mb-1">Total paid: ${nairaFromKobo(data.totalKobo)}</p>
+        <p class="text-gray-600 mb-4">Classes begin <strong>${data.startDateLabel}</strong> at the IBM School premises.</p>
+        <a href="${data.whatsappLink}" target="_blank" rel="noopener"
+           class="btn-primary inline-block rounded-xl px-6 py-3 font-bold mb-2">Join the WhatsApp Group</a>
+        <p class="text-xs text-gray-400 mt-4">A confirmation email has also been sent to you.</p>
+      `;
+    } else {
+      result.innerHTML = `
+        <h1 class="heading-font text-xl font-bold text-amber-600 mb-2">Payment not confirmed yet</h1>
+        <p class="text-gray-600">If you completed payment, this can take a minute — please refresh this page.
+        If the problem continues, contact the school with your reference: <code>${reference}</code></p>
+      `;
+    }
+  } catch (err) {
+    loading.classList.add("hidden");
+    result.classList.remove("hidden");
+    result.innerHTML = `<p class="text-red-600 font-semibold">Something went wrong confirming your payment. Please contact the school with reference: <code>${reference}</code></p>`;
+  }
+})();
+</script>
+</body>
+</html>

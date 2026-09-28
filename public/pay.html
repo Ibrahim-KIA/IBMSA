@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Complete Your Payment — IBM School Skill Acquisition Program</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/styles.css" />
+<link rel="icon" href="/images/logo.png" />
+</head>
+<body class="min-h-screen px-4 py-10">
+  <div class="max-w-lg mx-auto bg-white rounded-2xl shadow-md p-8" id="content">
+    <img src="/images/logo.png" alt="IBM School logo" class="h-16 w-16 object-contain mx-auto mb-4" />
+    <div id="loading" class="text-center text-gray-600">Loading your payment details...</div>
+    <div id="body" class="hidden"></div>
+  </div>
+
+<script>
+(async function () {
+  const params = new URLSearchParams(window.location.search);
+  const reference = params.get("reference");
+  const loading = document.getElementById("loading");
+  const body = document.getElementById("body");
+
+  function nairaFromKobo(kobo) { return "₦" + (kobo / 100).toLocaleString("en-NG"); }
+
+  if (!reference) {
+    loading.textContent = "Missing payment reference.";
+    return;
+  }
+
+  try {
+    const res = await fetch(`/api/verify?reference=${encodeURIComponent(reference)}`);
+    const data = await res.json();
+    loading.classList.add("hidden");
+    body.classList.remove("hidden");
+
+    if (data.status === "paid") {
+      window.location.href = `/success.html?reference=${encodeURIComponent(reference)}`;
+      return;
+    }
+
+    const bank = data.bank || {};
+    body.innerHTML = `
+      <h1 class="heading-font text-xl font-bold text-center mb-2">One more step — pay by bank transfer</h1>
+      <p class="text-gray-600 text-center mb-6">Your spot is reserved but not yet confirmed. Transfer the exact amount below, then we'll confirm your registration and email you.</p>
+
+      <div class="bg-[var(--ibm-green-light)] border border-green-200 rounded-xl p-5 space-y-3 mb-6">
+        <div class="flex justify-between"><span class="text-gray-600">Amount to pay</span><span class="font-bold text-lg">${nairaFromKobo(data.totalKobo)}</span></div>
+        <div class="flex justify-between"><span class="text-gray-600">Bank</span><span class="font-semibold">${bank.bankName || "—"}</span></div>
+        <div class="flex justify-between items-center">
+          <span class="text-gray-600">Account Number</span>
+          <span class="font-semibold font-mono text-lg tracking-wide">${bank.accountNumber || "—"}</span>
+        </div>
+        <div class="flex justify-between"><span class="text-gray-600">Account Name</span><span class="font-semibold">${bank.accountName || "—"}</span></div>
+      </div>
+
+      <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-sm text-amber-800">
+        <strong>Important:</strong> Use your <strong>full name</strong> as the transfer description/narration
+        so we can match your payment quickly. Reference: <code>${reference}</code>
+      </div>
+
+      <p class="text-gray-600 text-sm text-center mb-4">
+        Once we see your transfer, we'll confirm your spot and email you the WhatsApp group link —
+        usually within a few hours. You can check back on this page any time.
+      </p>
+      <button id="refresh-btn" class="btn-primary w-full rounded-xl py-3 font-bold">I've Paid — Check Status</button>
+    `;
+    document.getElementById("refresh-btn").addEventListener("click", () => window.location.reload());
+  } catch (err) {
+    loading.textContent = "Something went wrong loading your payment details. Please refresh this page.";
+  }
+})();
+</script>
+</body>
+</html>
