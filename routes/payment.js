@@ -1,4 +1,5 @@
 const express = require("express");
+const multer = require("multer");
 const { getCourseById, CONFIG } = require("../src/courses");
 const db = require("../src/db");
 const paystack = require("../src/paystack");
@@ -6,6 +7,18 @@ const email = require("../src/email");
 const { PAYMENT_METHOD, BANK_DETAILS } = require("../src/payment-config");
 
 const router = express.Router();
+
+const ALLOWED_RECEIPT_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 8 * 1024 * 1024 }, // 8MB raw cap — images are compressed client-side well below this
+  fileFilter: (req, file, cb) => {
+    if (!ALLOWED_RECEIPT_TYPES.has(file.mimetype)) {
+      return cb(new Error("Please upload a JPEG/PNG/WebP image or a PDF."));
+    }
+    cb(null, true);
+  },
+});
 
 async function confirmAndNotify(registration) {
   if (registration.status === "paid" && registration.confirmation_email_sent_at) {
@@ -45,6 +58,7 @@ router.get("/verify", async (req, res) => {
           reference,
           totalKobo: registration.total_kobo,
           bank: BANK_DETAILS,
+          hasReceipt: !!registration.has_receipt,
         });
       }
       const result = await paystack.verifyTransaction(reference);
@@ -70,6 +84,28 @@ router.get("/verify", async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message || "Could not verify payment." });
   }
+});
+
+// Lets a registrant upload proof of a bank transfer so the admin can match
+// it to their name/amount faster. Purely a convenience for tracking — a spot
+// is only ever confirmed by the admin's own "Mark Paid" click, never by this.
+router.post("/upload-receipt", (req, res) => {
+  upload.single("receipt")(req, res, async (err) => {
+    if (err) return res.status(400).json({ error: err.message || "Upload failed." });
+    try {
+      const { reference } = req.body;
+      if (!reference) return res.status(400).json({ error: "Missing reference." });
+      if (!req.file) return res.status(400).json({ error: "No file received." });
+
+      const registration = await db.getRegistrationByReference(reference);
+      if (!registration) return res.status(404).json({ error: "Registration not found." });
+
+      await db.saveReceipt(reference, req.file.buffer, req.file.mimetype);
+      res.json({ ok: true });
+    } catch (e) {
+      res.status(500).json({ error: e.message || "Upload failed." });
+    }
+  });
 });
 
 // Called directly by Paystack's servers — the authoritative confirmation path.

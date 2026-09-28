@@ -9,6 +9,21 @@
   let courses = [];
   let config = {};
 
+  const COURSE_ICONS = {
+    bag_making: "👜",
+    computer_literacy: "💻",
+    productivity_tools: "📊",
+    graphic_design: "🎨",
+    ai: "🤖",
+    agro_skills: "🌾",
+    catering_snacks: "🍿",
+    catering_meals: "🍲",
+    ict_ai_mastery: "🖥️",
+    catering_combined: "🍽️",
+    tailoring: "🧵",
+    fashion_design: "👗",
+  };
+
   function nairaFromKobo(kobo) {
     return "₦" + (kobo / 100).toLocaleString("en-NG");
   }
@@ -22,7 +37,9 @@
       .map(
         (c) => `
       <label class="course-card rounded-xl p-4 flex items-start gap-3 cursor-pointer" data-id="${c.id}">
-        <input type="checkbox" value="${c.id}" class="mt-1 h-5 w-5 rounded border-gray-300 text-[var(--ibm-green)]" />
+        <span class="check-badge">✓</span>
+        <span class="course-icon">${COURSE_ICONS[c.id] || "🎯"}</span>
+        <input type="checkbox" value="${c.id}" class="sr-only" />
         <span>
           <span class="block font-semibold">${c.name}</span>
           <span class="block text-gray-500 text-sm">${c.duration}</span>
@@ -61,6 +78,13 @@
     renderCourses();
     updateSummary();
     if (config.programStartDateLabel) startDateInline.textContent = config.programStartDateLabel;
+
+    const note = document.getElementById("payment-method-note");
+    if (config.paymentMethod === "bank_transfer") {
+      note.textContent = "You'll get our bank details on the next page — your spot is confirmed once we see your transfer.";
+    } else {
+      note.textContent = "Payments are processed securely by Paystack.";
+    }
   }
 
   async function checkDemoMode() {

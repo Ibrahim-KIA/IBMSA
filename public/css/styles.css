@@ -4,6 +4,9 @@
   --ibm-green: #1a7a3c;
   --ibm-green-dark: #145c2d;
   --ibm-green-light: #e8f7ee;
+  --ibm-amber: #f59e0b;
+  --ibm-amber-dark: #b45309;
+  --ibm-amber-light: #fef3c7;
   --ibm-ink: #1f2937;
 }
 
@@ -12,26 +15,174 @@ h1, h2, h3, .heading-font { font-family: 'Poppins', system-ui, sans-serif; }
 
 body { background: #f7faf8; color: var(--ibm-ink); }
 
+/* ---- Hero ---- */
+.hero-gradient {
+  background: linear-gradient(135deg, var(--ibm-green) 0%, var(--ibm-green-dark) 55%, #0f3f22 100%);
+  position: relative;
+  overflow: hidden;
+}
+.hero-gradient::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle at 15% 20%, rgba(255,255,255,0.10) 0, transparent 35%),
+                     radial-gradient(circle at 85% 75%, rgba(245,158,11,0.18) 0, transparent 40%);
+  pointer-events: none;
+}
+
+/* ---- Buttons ---- */
 .btn-primary {
   background: var(--ibm-green);
   color: white;
+  transition: background 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  box-shadow: 0 4px 14px rgba(26, 122, 60, 0.35);
+}
+.btn-primary:hover { background: var(--ibm-green-dark); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(26, 122, 60, 0.4); }
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled { background: #9ca3af; cursor: not-allowed; box-shadow: none; transform: none; }
+
+.btn-whatsapp {
+  background: #25d366;
+  color: white;
   transition: background 0.15s ease, transform 0.1s ease;
 }
-.btn-primary:hover { background: var(--ibm-green-dark); }
-.btn-primary:active { transform: scale(0.98); }
-.btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+.btn-whatsapp:hover { background: #1fb855; transform: translateY(-1px); }
 
+/* ---- Course cards ---- */
 .course-card {
   border: 2px solid #e5e7eb;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  background: white;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+}
+.course-card:hover {
+  border-color: #b7e4c7;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
 }
 .course-card.selected {
   border-color: var(--ibm-green);
   background: var(--ibm-green-light);
+  transform: translateY(-2px) scale(1.01);
+  box-shadow: 0 8px 20px rgba(26, 122, 60, 0.18);
+}
+.course-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.75rem;
+  background: var(--ibm-green-light);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+.course-card.selected .course-icon {
+  background: var(--ibm-green);
+  transform: scale(1.08) rotate(-4deg);
+}
+.check-badge {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--ibm-green);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+  transform: scale(0);
+  transition: transform 0.2s cubic-bezier(.34,1.56,.64,1);
+}
+.course-card.selected .check-badge { transform: scale(1); }
+
+.badge-discount {
+  background: var(--ibm-amber-light);
+  color: var(--ibm-amber-dark);
+  font-weight: 700;
 }
 
+/* ---- Sticky mobile summary bar ---- */
+.sticky-summary {
+  position: sticky;
+  bottom: 0;
+  z-index: 20;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  box-shadow: 0 -6px 20px rgba(0,0,0,0.08);
+}
+
+/* ---- Floating WhatsApp support button ---- */
+.support-float {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 50;
+  background: #25d366;
+  color: white;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 18px rgba(37, 211, 102, 0.45);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  animation: support-pop 0.5s cubic-bezier(.34,1.56,.64,1) 0.3s both;
+}
+.support-float:hover { transform: scale(1.08); box-shadow: 0 8px 22px rgba(37, 211, 102, 0.55); }
+@keyframes support-pop {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+/* ---- Misc ---- */
 .demo-banner {
   background: #fef3c7;
   border-bottom: 2px solid #f59e0b;
   color: #92400e;
+}
+
+.pop-in { animation: pop-in 0.35s cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes pop-in {
+  0% { opacity: 0; transform: translateY(6px) scale(0.97); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.step-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  background: rgba(255,255,255,0.18);
+  color: white;
+  border: 2px solid rgba(255,255,255,0.4);
+}
+.step-dot.active { background: var(--ibm-amber); border-color: var(--ibm-amber); color: #1f2937; }
+
+.confetti-piece {
+  position: fixed;
+  top: -10px;
+  width: 8px;
+  height: 14px;
+  z-index: 60;
+  pointer-events: none;
+  animation-name: confetti-fall;
+  animation-timing-function: cubic-bezier(.25,.46,.45,.94);
+  animation-fill-mode: forwards;
+}
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(110vh) rotate(540deg); opacity: 0.9; }
 }

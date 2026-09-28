@@ -9,13 +9,30 @@
 <link rel="icon" href="/images/logo.png" />
 </head>
 <body class="min-h-screen flex items-center justify-center px-4">
-  <div class="max-w-lg w-full bg-white rounded-2xl shadow-md p-8 text-center" id="content">
+  <div class="max-w-lg w-full bg-white rounded-2xl shadow-xl p-8 text-center pop-in" id="content">
     <img src="/images/logo.png" alt="IBM School logo" class="h-16 w-16 object-contain mx-auto mb-4" />
     <div id="loading">
       <p class="text-gray-600">Confirming your payment, please wait...</p>
     </div>
     <div id="result" class="hidden"></div>
   </div>
+
+<script>
+  function launchConfetti() {
+    const colors = ["#1a7a3c", "#f59e0b", "#25d366", "#e8f7ee", "#145c2d"];
+    for (let i = 0; i < 60; i++) {
+      const piece = document.createElement("div");
+      piece.className = "confetti-piece";
+      piece.style.left = Math.random() * 100 + "vw";
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.animationDuration = 2.2 + Math.random() * 1.6 + "s";
+      piece.style.animationDelay = Math.random() * 0.6 + "s";
+      piece.style.transform = `rotate(${Math.random() * 360}deg)`;
+      document.body.appendChild(piece);
+      setTimeout(() => piece.remove(), 4500);
+    }
+  }
+</script>
 
 <script>
 (async function () {
@@ -40,22 +57,25 @@
     result.classList.remove("hidden");
 
     if (data.status === "paid") {
-      const courseList = data.courses.map(c => `<li>${c.name} (${c.duration})</li>`).join("");
+      const courseList = data.courses.map(c => `<li>🎯 ${c.name} <span class="text-gray-400">(${c.duration})</span></li>`).join("");
       result.innerHTML = `
         <h1 class="heading-font text-2xl font-bold text-[var(--ibm-green)] mb-2">You're registered! 🎉</h1>
         <p class="text-gray-600 mb-4">Thank you, ${data.fullName}. Your spot is confirmed for:</p>
-        <ul class="text-left inline-block mb-4">${courseList}</ul>
+        <ul class="text-left inline-block mb-4 space-y-1">${courseList}</ul>
         <p class="font-semibold mb-1">Total paid: ${nairaFromKobo(data.totalKobo)}</p>
         <p class="text-gray-600 mb-4">Classes begin <strong>${data.startDateLabel}</strong> at the IBM School premises.</p>
         <a href="${data.whatsappLink}" target="_blank" rel="noopener"
-           class="btn-primary inline-block rounded-xl px-6 py-3 font-bold mb-2">Join the WhatsApp Group</a>
+           class="btn-whatsapp inline-block rounded-xl px-6 py-3 font-bold mb-2">💬 Join the WhatsApp Group</a>
         <p class="text-xs text-gray-400 mt-4">A confirmation email has also been sent to you.</p>
       `;
+      launchConfetti();
     } else {
       result.innerHTML = `
-        <h1 class="heading-font text-xl font-bold text-amber-600 mb-2">Payment not confirmed yet</h1>
-        <p class="text-gray-600">If you completed payment, this can take a minute — please refresh this page.
-        If the problem continues, contact the school with your reference: <code>${reference}</code></p>
+        <h1 class="heading-font text-xl font-bold text-amber-600 mb-2">Payment not confirmed yet ⏳</h1>
+        <p class="text-gray-600 mb-4">If you completed payment, this can take a little while — please refresh this page.
+        If the problem continues, chat with us with your reference: <code>${reference}</code></p>
+        <a href="https://wa.me/2348026559663?text=${encodeURIComponent('Hi, my registration reference is ' + reference + ' — my payment status still shows as not confirmed.')}"
+           target="_blank" rel="noopener" class="btn-whatsapp inline-block rounded-xl px-6 py-3 font-bold">💬 Chat with us on WhatsApp</a>
       `;
     }
   } catch (err) {
@@ -65,5 +85,6 @@
   }
 })();
 </script>
+<script src="/js/support-widget.js"></script>
 </body>
 </html>

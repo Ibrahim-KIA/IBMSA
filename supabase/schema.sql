@@ -20,8 +20,16 @@ create table if not exists registrations (
   status text not null default 'pending' check (status in ('pending', 'paid', 'failed')),
   created_at timestamptz not null default now(),
   paid_at timestamptz,
-  confirmation_email_sent_at timestamptz
+  confirmation_email_sent_at timestamptz,
+  receipt_data bytea,
+  receipt_mime text,
+  receipt_uploaded_at timestamptz
 );
 
 create index if not exists idx_registrations_status on registrations(status);
 create index if not exists idx_registrations_reference on registrations(paystack_reference);
+
+-- Safe to re-run on an existing database that predates the receipt-upload feature:
+alter table registrations add column if not exists receipt_data bytea;
+alter table registrations add column if not exists receipt_mime text;
+alter table registrations add column if not exists receipt_uploaded_at timestamptz;

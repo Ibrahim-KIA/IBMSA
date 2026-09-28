@@ -9,7 +9,7 @@
 <link rel="icon" href="/images/logo.png" />
 </head>
 <body class="min-h-screen px-4 py-10">
-  <div class="max-w-lg mx-auto bg-white rounded-2xl shadow-md p-8" id="content">
+  <div class="max-w-lg mx-auto bg-white rounded-2xl shadow-xl p-8 pop-in" id="content">
     <img src="/images/logo.png" alt="IBM School logo" class="h-16 w-16 object-contain mx-auto mb-4" />
     <div id="loading" class="text-center text-gray-600">Loading your payment details...</div>
     <div id="body" class="hidden"></div>
@@ -23,6 +23,32 @@
   const body = document.getElementById("body");
 
   function nairaFromKobo(kobo) { return "₦" + (kobo / 100).toLocaleString("en-NG"); }
+
+  // Shrinks a photo to a reasonable size/quality before upload — a phone
+  // camera shot can be 3-5MB; this gets it down to a few hundred KB so
+  // uploads stay fast on slow connections and storage stays cheap.
+  function compressImage(file, maxDimension = 1600, quality = 0.72) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        let { width, height } = img;
+        if (width > maxDimension || height > maxDimension) {
+          const scale = maxDimension / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Could not process image."))), "image/jpeg", quality);
+      };
+      img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Could not read that image.")); };
+      img.src = url;
+    });
+  }
 
   if (!reference) {
     loading.textContent = "Missing payment reference.";
@@ -41,8 +67,11 @@
     }
 
     const bank = data.bank || {};
+    const proofMessage = `Hi, I just paid ₦${(data.totalKobo / 100).toLocaleString("en-NG")} for my registration. My reference is ${reference}. Here is my payment receipt:`;
+    const waProofLink = `https://wa.me/2348026559663?text=${encodeURIComponent(proofMessage)}`;
+
     body.innerHTML = `
-      <h1 class="heading-font text-xl font-bold text-center mb-2">One more step — pay by bank transfer</h1>
+      <h1 class="heading-font text-xl font-bold text-center mb-2">One more step 💳 — pay by bank transfer</h1>
       <p class="text-gray-600 text-center mb-6">Your spot is reserved but not yet confirmed. Transfer the exact amount below, then we'll confirm your registration and email you.</p>
 
       <div class="bg-[var(--ibm-green-light)] border border-green-200 rounded-xl p-5 space-y-3 mb-6">
@@ -60,6 +89,20 @@
         so we can match your payment quickly. Reference: <code>${reference}</code>
       </div>
 
+      <div class="border border-gray-200 rounded-xl p-4 mb-6">
+        <p class="font-semibold text-sm mb-1">📎 Upload your payment receipt <span class="font-normal text-gray-400">(optional, but speeds things up)</span></p>
+        <p class="text-gray-500 text-xs mb-3">A screenshot or photo of your bank transfer helps us confirm your spot faster.</p>
+        <input type="file" id="receipt-input" accept="image/jpeg,image/png,image/webp,application/pdf" class="w-full text-sm mb-2" />
+        <button id="receipt-upload-btn" class="w-full rounded-lg border-2 border-[var(--ibm-green)] text-[var(--ibm-green)] font-bold py-2 text-sm hover:bg-[var(--ibm-green-light)]" ${data.hasReceipt ? "" : "disabled"}>
+          ${data.hasReceipt ? "✓ Receipt uploaded — upload a different one" : "Select a file first"}
+        </button>
+        <p id="receipt-status" class="text-xs mt-2 ${data.hasReceipt ? "text-[var(--ibm-green)] font-semibold" : "text-gray-400"}">${data.hasReceipt ? "Receipt received ✓" : ""}</p>
+      </div>
+
+      <a href="${waProofLink}" target="_blank" rel="noopener" class="btn-whatsapp flex items-center justify-center gap-2 w-full rounded-xl py-3 font-bold mb-3">
+        💬 Send Proof on WhatsApp (faster)
+      </a>
+
       <p class="text-gray-600 text-sm text-center mb-4">
         Once we see your transfer, we'll confirm your spot and email you the WhatsApp group link —
         usually within a few hours. You can check back on this page any time.
@@ -67,10 +110,53 @@
       <button id="refresh-btn" class="btn-primary w-full rounded-xl py-3 font-bold">I've Paid — Check Status</button>
     `;
     document.getElementById("refresh-btn").addEventListener("click", () => window.location.reload());
+
+    const fileInput = document.getElementById("receipt-input");
+    const uploadBtn = document.getElementById("receipt-upload-btn");
+    const statusEl = document.getElementById("receipt-status");
+
+    fileInput.addEventListener("change", () => {
+      if (fileInput.files.length) {
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = "Upload Receipt";
+        statusEl.textContent = "";
+      }
+    });
+
+    uploadBtn.addEventListener("click", async () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      uploadBtn.disabled = true;
+      uploadBtn.textContent = "Uploading...";
+      statusEl.className = "text-xs mt-2 text-gray-400";
+      statusEl.textContent = "";
+      try {
+        let fileToSend = file;
+        if (file.type.startsWith("image/") && file.type !== "image/webp") {
+          fileToSend = await compressImage(file);
+        }
+        const fd = new FormData();
+        fd.append("reference", reference);
+        fd.append("receipt", fileToSend, file.name.replace(/\.[^.]+$/, "") + (fileToSend.type === "image/jpeg" ? ".jpg" : ""));
+        const uploadRes = await fetch("/api/upload-receipt", { method: "POST", body: fd });
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok) throw new Error(uploadData.error || "Upload failed.");
+        uploadBtn.textContent = "✓ Receipt uploaded — upload a different one";
+        uploadBtn.disabled = false;
+        statusEl.className = "text-xs mt-2 text-[var(--ibm-green)] font-semibold";
+        statusEl.textContent = "Receipt received ✓";
+      } catch (err) {
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = "Try Again";
+        statusEl.className = "text-xs mt-2 text-red-600 font-semibold";
+        statusEl.textContent = err.message;
+      }
+    });
   } catch (err) {
     loading.textContent = "Something went wrong loading your payment details. Please refresh this page.";
   }
 })();
 </script>
+<script src="/js/support-widget.js"></script>
 </body>
 </html>

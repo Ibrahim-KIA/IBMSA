@@ -113,7 +113,7 @@
   function renderTable(rows) {
     const tbody = document.getElementById("reg-table-body");
     if (rows.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-gray-400">No registrations yet.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="py-6 text-center text-gray-400">No registrations yet.</td></tr>`;
       return;
     }
     tbody.innerHTML = rows
@@ -127,6 +127,9 @@
         <td class="py-2 pr-3">${nairaFromKobo(r.totalKobo)}</td>
         <td class="py-2 pr-3">
           <span class="px-2 py-1 rounded-full text-xs font-semibold ${r.status === "paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}">${r.status}</span>
+        </td>
+        <td class="py-2 pr-3">
+          ${r.hasReceipt ? `<a href="/api/admin/receipt/${encodeURIComponent(r.reference)}" target="_blank" class="text-[var(--ibm-green)] font-semibold underline">📎 View</a>` : `<span class="text-gray-300">—</span>`}
         </td>
         <td class="py-2 pr-3">
           ${r.status !== "paid" ? `<button class="mark-paid-btn rounded-lg border border-[var(--ibm-green)] text-[var(--ibm-green)] px-3 py-1 text-xs font-bold hover:bg-[var(--ibm-green-light)]" data-reference="${r.reference}">Mark Paid</button>` : ""}

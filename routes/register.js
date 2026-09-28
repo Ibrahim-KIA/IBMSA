@@ -8,7 +8,7 @@ const { PAYMENT_METHOD, BANK_DETAILS } = require("../src/payment-config");
 const router = express.Router();
 
 router.get("/courses", (req, res) => {
-  res.json({ courses: COURSES, config: CONFIG });
+  res.json({ courses: COURSES, config: { ...CONFIG, paymentMethod: PAYMENT_METHOD } });
 });
 
 function normalizePhone(raw) {

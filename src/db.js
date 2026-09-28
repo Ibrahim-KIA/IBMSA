@@ -48,12 +48,19 @@ async function insertRegistration(reg) {
   return rows[0];
 }
 
+// Excludes the heavy receipt_data blob — callers that need the actual file
+// use getReceipt() below instead. Keeps every routine status check light.
+const LIST_COLUMNS = `id, full_name, email, whatsapp, address, kin_name, kin_phone, course_ids,
+  subtotal_kobo, reg_fee_kobo, discount_kobo, total_kobo, paystack_reference, status,
+  created_at, paid_at, confirmation_email_sent_at, (receipt_data is not null) as has_receipt`;
+
 async function getRegistrationByReference(reference) {
   if (isDemo) {
-    return demoStore.find((r) => r.paystack_reference === reference) || null;
+    const row = demoStore.find((r) => r.paystack_reference === reference);
+    return row ? { ...row, has_receipt: !!row.receipt_data } : null;
   }
   const { rows } = await pool.query(
-    `select * from registrations where paystack_reference = $1`,
+    `select ${LIST_COLUMNS} from registrations where paystack_reference = $1`,
     [reference]
   );
   return rows[0] || null;
@@ -94,11 +101,13 @@ async function markConfirmationEmailSent(reference) {
 
 async function listRegistrations({ status, courseId } = {}) {
   if (isDemo) {
-    return demoStore.filter((r) => {
-      if (status && r.status !== status) return false;
-      if (courseId && !r.course_ids.includes(courseId)) return false;
-      return true;
-    });
+    return demoStore
+      .filter((r) => {
+        if (status && r.status !== status) return false;
+        if (courseId && !r.course_ids.includes(courseId)) return false;
+        return true;
+      })
+      .map((r) => ({ ...r, has_receipt: !!r.receipt_data }));
   }
   const clauses = [];
   const params = [];
@@ -112,10 +121,42 @@ async function listRegistrations({ status, courseId } = {}) {
   }
   const where = clauses.length ? `where ${clauses.join(" and ")}` : "";
   const { rows } = await pool.query(
-    `select * from registrations ${where} order by created_at desc`,
+    `select ${LIST_COLUMNS} from registrations ${where} order by created_at desc`,
     params
   );
   return rows;
+}
+
+async function saveReceipt(reference, buffer, mimeType) {
+  if (isDemo) {
+    const row = demoStore.find((r) => r.paystack_reference === reference);
+    if (row) {
+      row.receipt_data = buffer;
+      row.receipt_mime = mimeType;
+      row.receipt_uploaded_at = new Date().toISOString();
+    }
+    return !!row;
+  }
+  const { rowCount } = await pool.query(
+    `update registrations set receipt_data = $1, receipt_mime = $2, receipt_uploaded_at = now()
+     where paystack_reference = $3`,
+    [buffer, mimeType, reference]
+  );
+  return rowCount > 0;
+}
+
+async function getReceipt(reference) {
+  if (isDemo) {
+    const row = demoStore.find((r) => r.paystack_reference === reference);
+    if (!row || !row.receipt_data) return null;
+    return { data: row.receipt_data, mime: row.receipt_mime };
+  }
+  const { rows } = await pool.query(
+    `select receipt_data, receipt_mime from registrations where paystack_reference = $1`,
+    [reference]
+  );
+  if (!rows[0] || !rows[0].receipt_data) return null;
+  return { data: rows[0].receipt_data, mime: rows[0].receipt_mime };
 }
 
 module.exports = {
@@ -125,4 +166,6 @@ module.exports = {
   markRegistrationPaid,
   markConfirmationEmailSent,
   listRegistrations,
+  saveReceipt,
+  getReceipt,
 };

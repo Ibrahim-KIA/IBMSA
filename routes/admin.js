@@ -56,6 +56,7 @@ router.get("/registrations", auth.requireAdmin, async (req, res) => {
       status: r.status,
       createdAt: r.created_at,
       paidAt: r.paid_at,
+      hasReceipt: !!r.has_receipt,
     })),
     summary,
   });
@@ -75,6 +76,13 @@ router.get("/export.csv", auth.requireAdmin, async (req, res) => {
   res.setHeader("Content-Type", "text/csv");
   res.setHeader("Content-Disposition", "attachment; filename=registrations.csv");
   res.send(header + body);
+});
+
+router.get("/receipt/:reference", auth.requireAdmin, async (req, res) => {
+  const receipt = await db.getReceipt(req.params.reference);
+  if (!receipt) return res.status(404).send("No receipt uploaded for this registration.");
+  res.setHeader("Content-Type", receipt.mime || "application/octet-stream");
+  res.send(receipt.data);
 });
 
 router.post("/mark-paid", auth.requireAdmin, async (req, res) => {
