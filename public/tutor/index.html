@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tutor Portal — IBM School Skill Acquisition Program</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="/css/styles.css" />
+<link rel="icon" href="/images/logo.png" />
+</head>
+<body class="min-h-screen pb-16">
+
+<header class="hero-gradient text-white">
+  <div class="max-w-3xl mx-auto px-4 py-8 text-center">
+    <img src="/images/logo.png" alt="IBM School logo" class="h-14 w-14 object-contain mx-auto mb-3" />
+    <h1 class="heading-font text-xl md:text-2xl font-bold">Tutor Portal</h1>
+    <p class="text-white/80 text-sm mt-1">Curriculum &amp; teaching progress — IBM School Skill Acquisition Program</p>
+  </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-4 -mt-4 relative z-10">
+
+  <div id="denied" class="hidden bg-white rounded-2xl shadow-xl p-8 text-center mt-4">
+    <p class="text-xl mb-2">🔒</p>
+    <h2 class="heading-font text-lg font-bold mb-2">This link isn't valid</h2>
+    <p class="text-gray-500 text-sm">Please use the exact tutor access link the school sent you. If you think this is a mistake, contact the school office.</p>
+  </div>
+
+  <div id="loading" class="text-center text-gray-500 py-16">Loading curriculum...</div>
+
+  <div id="content" class="hidden space-y-4 py-4"></div>
+
+</main>
+
+<script src="/js/tutor.js"></script>
+</body>
+</html>

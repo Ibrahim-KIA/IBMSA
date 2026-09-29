@@ -33,3 +33,17 @@ create index if not exists idx_registrations_reference on registrations(paystack
 alter table registrations add column if not exists receipt_data bytea;
 alter table registrations add column if not exists receipt_mime text;
 alter table registrations add column if not exists receipt_uploaded_at timestamptz;
+
+-- Tutor portal: one row per (course, week), tracking teaching progress.
+-- Tutors share a single access link (see docs/SETUP_GUIDE.md) rather than
+-- individual accounts, so "updated_by" is a free-text name they type in,
+-- not an authenticated identity.
+create table if not exists curriculum_progress (
+  course_id text not null,
+  week_number integer not null,
+  status text not null default 'not_started' check (status in ('not_started', 'in_progress', 'done')),
+  note text,
+  updated_by text,
+  updated_at timestamptz not null default now(),
+  primary key (course_id, week_number)
+);

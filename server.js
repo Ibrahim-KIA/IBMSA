@@ -6,9 +6,11 @@ const cookieParser = require("cookie-parser");
 const registerRoutes = require("./routes/register");
 const paymentRoutes = require("./routes/payment");
 const adminRoutes = require("./routes/admin");
+const tutorRoutes = require("./routes/tutor");
 const db = require("./src/db");
 const paystack = require("./src/paystack");
 const emailer = require("./src/email");
+const tutorAuth = require("./src/tutor-auth");
 
 const app = express();
 app.disable("x-powered-by");
@@ -35,6 +37,7 @@ app.get("/api/demo-status", (req, res) => {
 app.use("/api", registerRoutes);
 app.use("/api", paymentRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/tutor", tutorRoutes);
 
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -44,4 +47,5 @@ app.listen(PORT, () => {
   if (db.isDemo) console.log("  -> DEMO MODE: no DATABASE_URL set, using in-memory storage.");
   if (paystack.isDemo) console.log("  -> DEMO MODE: no PAYSTACK_SECRET_KEY set, payments are simulated.");
   if (emailer.isDemo) console.log("  -> DEMO MODE: no RESEND_API_KEY set, emails are only logged here.");
+  if (tutorAuth.isDemo) console.log("  -> DEMO MODE: no TUTOR_ACCESS_TOKEN set, using a fixed demo link: /tutor?token=demo-tutor-access");
 });

@@ -159,6 +159,43 @@ async function getReceipt(reference) {
   return { data: rows[0].receipt_data, mime: rows[0].receipt_mime };
 }
 
+// Demo-mode progress store, keyed "courseId:week" — separate from
+// demoStore since progress isn't tied to any one registration.
+const demoProgress = new Map();
+
+async function getAllProgress() {
+  if (isDemo) {
+    return [...demoProgress.values()];
+  }
+  const { rows } = await pool.query(`select * from curriculum_progress`);
+  return rows;
+}
+
+async function upsertProgress(courseId, week, { status, note, updatedBy }) {
+  if (isDemo) {
+    const key = `${courseId}:${week}`;
+    const row = {
+      course_id: courseId,
+      week_number: week,
+      status,
+      note: note || null,
+      updated_by: updatedBy || null,
+      updated_at: new Date().toISOString(),
+    };
+    demoProgress.set(key, row);
+    return row;
+  }
+  const { rows } = await pool.query(
+    `insert into curriculum_progress (course_id, week_number, status, note, updated_by, updated_at)
+     values ($1, $2, $3, $4, $5, now())
+     on conflict (course_id, week_number)
+     do update set status = $3, note = $4, updated_by = $5, updated_at = now()
+     returning *`,
+    [courseId, week, status, note || null, updatedBy || null]
+  );
+  return rows[0];
+}
+
 module.exports = {
   isDemo,
   insertRegistration,
@@ -168,4 +205,6 @@ module.exports = {
   listRegistrations,
   saveReceipt,
   getReceipt,
+  getAllProgress,
+  upsertProgress,
 };
