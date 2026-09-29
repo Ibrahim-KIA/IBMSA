@@ -23,8 +23,8 @@ const CONFIG = {
   comboDiscountKobo: 200_000, // ₦2,000 off when 2+ courses are selected
   comboDiscountMinCourses: 2,
   certificateFeeKobo: 300_000, // ₦3,000, charged separately at end of program — informational only
-  programStartDate: "2026-10-12",
-  programStartDateLabel: "October 12, 2026",
+  programStartDate: "2026-10-19",
+  programStartDateLabel: "October 19, 2026",
 };
 
 function getCourseById(id) {
