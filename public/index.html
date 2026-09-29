@@ -32,69 +32,82 @@
 <main class="max-w-3xl mx-auto px-4 py-8 -mt-6 relative z-10">
 
   <section id="form-section" class="bg-white rounded-2xl shadow-xl p-6 md:p-8">
-    <div class="flex items-center gap-3 mb-1">
-      <span class="step-dot active" style="background:var(--ibm-green);color:white;border-color:var(--ibm-green);">1</span>
-      <h2 class="heading-font text-lg font-bold">Your Details</h2>
+    <div class="flex items-center justify-between mb-5">
+      <div class="flex items-center gap-2">
+        <span id="progress-dot-1" class="step-dot active" style="background:var(--ibm-green);color:white;border-color:var(--ibm-green);">1</span>
+        <div class="w-8 h-0.5 bg-gray-200"></div>
+        <span id="progress-dot-2" class="step-dot" style="background:#f3f4f6;color:#9ca3af;border-color:#f3f4f6;">2</span>
+      </div>
+      <span id="step-label" class="text-xs font-semibold text-gray-400 uppercase tracking-wide">Step 1 of 2</span>
     </div>
-    <p class="text-gray-500 text-sm mb-5 ml-11">All fields are required — takes about 2 minutes.</p>
 
     <form id="reg-form" class="space-y-4" novalidate>
-      <div>
-        <label class="block text-sm font-medium mb-1">Full Name</label>
-        <input name="fullName" type="text" required class="w-full rounded-lg border border-gray-300 focus:border-[var(--ibm-green)] focus:ring-[var(--ibm-green)]" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Email Address</label>
-        <input name="email" type="email" required class="w-full rounded-lg border border-gray-300 focus:border-[var(--ibm-green)] focus:ring-[var(--ibm-green)]" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">WhatsApp Number</label>
-        <input name="whatsapp" type="tel" placeholder="e.g. 08012345678" required class="w-full rounded-lg border border-gray-300 focus:border-[var(--ibm-green)] focus:ring-[var(--ibm-green)]" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium mb-1">Home Address</label>
-        <input name="address" type="text" required class="w-full rounded-lg border border-gray-300 focus:border-[var(--ibm-green)] focus:ring-[var(--ibm-green)]" />
-      </div>
-      <div class="grid md:grid-cols-2 gap-4">
-        <div>
-          <label class="block text-sm font-medium mb-1">Next of Kin Name</label>
-          <input name="kinName" type="text" required class="w-full rounded-lg border border-gray-300 focus:border-[var(--ibm-green)] focus:ring-[var(--ibm-green)]" />
+
+      <div id="step-1">
+        <h2 class="heading-font text-lg font-bold mb-1">Your Details</h2>
+        <p class="text-gray-500 text-sm mb-5">All fields are required — takes about 2 minutes.</p>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium mb-1">Full Name</label>
+            <input name="fullName" type="text" required class="w-full rounded-lg border border-gray-300 focus:border-[var(--ibm-green)] focus:ring-[var(--ibm-green)]" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Email Address</label>
+            <input name="email" type="email" required class="w-full rounded-lg border border-gray-300 focus:border-[var(--ibm-green)] focus:ring-[var(--ibm-green)]" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">WhatsApp Number</label>
+            <input name="whatsapp" type="tel" placeholder="e.g. 08012345678" required class="w-full rounded-lg border border-gray-300 focus:border-[var(--ibm-green)] focus:ring-[var(--ibm-green)]" />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1">Home Address</label>
+            <input name="address" type="text" required class="w-full rounded-lg border border-gray-300 focus:border-[var(--ibm-green)] focus:ring-[var(--ibm-green)]" />
+          </div>
+          <div class="grid md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium mb-1">Next of Kin Name</label>
+              <input name="kinName" type="text" required class="w-full rounded-lg border border-gray-300 focus:border-[var(--ibm-green)] focus:ring-[var(--ibm-green)]" />
+            </div>
+            <div>
+              <label class="block text-sm font-medium mb-1">Next of Kin Phone Number</label>
+              <input name="kinPhone" type="tel" required class="w-full rounded-lg border border-gray-300 focus:border-[var(--ibm-green)] focus:ring-[var(--ibm-green)]" />
+            </div>
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium mb-1">Next of Kin Phone Number</label>
-          <input name="kinPhone" type="tel" required class="w-full rounded-lg border border-gray-300 focus:border-[var(--ibm-green)] focus:ring-[var(--ibm-green)]" />
+
+        <button type="button" id="next-btn" class="btn-primary w-full rounded-xl py-4 font-bold text-lg mt-6">
+          Continue to Courses →
+        </button>
+      </div>
+
+      <div id="step-2" class="hidden">
+        <h2 class="heading-font text-lg font-bold mb-1">Choose Your Course(s)</h2>
+        <p class="text-gray-500 text-sm mb-3">Tap to select — pick 2 or more for an automatic discount.</p>
+        <div id="course-list" class="grid sm:grid-cols-2 gap-3"></div>
+
+        <h2 class="heading-font text-lg font-bold pt-6 mb-3">Summary</h2>
+        <div id="summary" class="bg-gray-50 rounded-xl p-4 space-y-1 text-sm">
+          <div class="flex justify-between"><span>Subtotal</span><span id="sum-subtotal">₦0</span></div>
+          <div class="flex justify-between"><span>Registration fee</span><span id="sum-regfee">₦0</span></div>
+          <div class="flex justify-between text-[var(--ibm-green)]"><span>Combo discount 🎉</span><span id="sum-discount">-₦0</span></div>
+          <div class="flex justify-between font-extrabold text-lg border-t pt-2 mt-2"><span>Total to Pay</span><span id="sum-total" class="text-[var(--ibm-green)]">₦0</span></div>
         </div>
+
+        <label class="flex items-start gap-3 pt-4 text-sm">
+          <input type="checkbox" name="agree" required class="mt-1 h-5 w-5 rounded border border-gray-300 text-[var(--ibm-green)]" />
+          <span>I understand that a Certificate of Completion fee of ₦3,000 will be required at the end of the program upon satisfactory assessment.</span>
+        </label>
+
+        <p id="form-error" class="text-red-600 text-sm font-medium hidden mt-3"></p>
+
+        <button type="submit" id="submit-btn" class="btn-primary w-full rounded-xl py-4 font-bold text-lg mt-4">
+          Pay &amp; Register Now 🎓
+        </button>
+        <p id="payment-method-note" class="text-center text-xs text-gray-400 mt-2">Secure registration — your details are kept safe.</p>
+        <button type="button" id="back-btn" class="w-full text-center text-sm text-gray-500 font-semibold py-3 hover:text-[var(--ibm-green)]">← Back to Your Details</button>
       </div>
 
-      <div class="flex items-center gap-3 pt-4 mb-1">
-        <span class="step-dot" style="background:var(--ibm-green-light);color:var(--ibm-green);border-color:var(--ibm-green-light);">2</span>
-        <h2 class="heading-font text-lg font-bold">Choose Your Course(s)</h2>
-      </div>
-      <p class="text-gray-500 text-sm mb-3 ml-11">Tap to select — pick 2 or more for an automatic discount.</p>
-      <div id="course-list" class="grid sm:grid-cols-2 gap-3"></div>
-
-      <div class="flex items-center gap-3 pt-4 mb-3">
-        <span class="step-dot" style="background:var(--ibm-green-light);color:var(--ibm-green);border-color:var(--ibm-green-light);">3</span>
-        <h2 class="heading-font text-lg font-bold">Summary</h2>
-      </div>
-      <div id="summary" class="bg-gray-50 rounded-xl p-4 space-y-1 text-sm ml-0">
-        <div class="flex justify-between"><span>Subtotal</span><span id="sum-subtotal">₦0</span></div>
-        <div class="flex justify-between"><span>Registration fee</span><span id="sum-regfee">₦0</span></div>
-        <div class="flex justify-between text-[var(--ibm-green)]"><span>Combo discount 🎉</span><span id="sum-discount">-₦0</span></div>
-        <div class="flex justify-between font-extrabold text-lg border-t pt-2 mt-2"><span>Total to Pay</span><span id="sum-total" class="text-[var(--ibm-green)]">₦0</span></div>
-      </div>
-
-      <label class="flex items-start gap-3 pt-4 text-sm">
-        <input type="checkbox" name="agree" required class="mt-1 h-5 w-5 rounded border border-gray-300 text-[var(--ibm-green)]" />
-        <span>I understand that a Certificate of Completion fee of ₦3,000 will be required at the end of the program upon satisfactory assessment.</span>
-      </label>
-
-      <p id="form-error" class="text-red-600 text-sm font-medium hidden"></p>
-
-      <button type="submit" id="submit-btn" class="btn-primary w-full rounded-xl py-4 font-bold text-lg mt-2">
-        Pay &amp; Register Now 🎓
-      </button>
-      <p id="payment-method-note" class="text-center text-xs text-gray-400">Secure registration — your details are kept safe.</p>
     </form>
   </section>
 

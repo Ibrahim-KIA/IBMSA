@@ -5,6 +5,13 @@
   const formError = document.getElementById("form-error");
   const demoBanner = document.getElementById("demo-banner");
   const startDateInline = document.getElementById("start-date-inline");
+  const step1El = document.getElementById("step-1");
+  const step2El = document.getElementById("step-2");
+  const nextBtn = document.getElementById("next-btn");
+  const backBtn = document.getElementById("back-btn");
+  const stepLabel = document.getElementById("step-label");
+  const dot1 = document.getElementById("progress-dot-1");
+  const dot2 = document.getElementById("progress-dot-2");
 
   let courses = [];
   let config = {};
@@ -104,6 +111,47 @@
   function hideError() {
     formError.classList.add("hidden");
   }
+
+  function activeDotStyle(el) {
+    el.style.background = "var(--ibm-green)";
+    el.style.color = "white";
+    el.style.borderColor = "var(--ibm-green)";
+    el.classList.add("active");
+  }
+  function inactiveDotStyle(el) {
+    el.style.background = "#f3f4f6";
+    el.style.color = "#9ca3af";
+    el.style.borderColor = "#f3f4f6";
+    el.classList.remove("active");
+  }
+
+  function goToStep(step) {
+    if (step === 1) {
+      step1El.classList.remove("hidden");
+      step2El.classList.add("hidden");
+      activeDotStyle(dot1);
+      inactiveDotStyle(dot2);
+      stepLabel.textContent = "Step 1 of 2";
+      window.scrollTo({ top: form.offsetTop - 20, behavior: "smooth" });
+    } else {
+      step1El.classList.add("hidden");
+      step2El.classList.remove("hidden");
+      activeDotStyle(dot1);
+      activeDotStyle(dot2);
+      stepLabel.textContent = "Step 2 of 2";
+      window.scrollTo({ top: form.offsetTop - 20, behavior: "smooth" });
+    }
+  }
+
+  nextBtn.addEventListener("click", () => {
+    const requiredInputs = step1El.querySelectorAll("input[required]");
+    for (const input of requiredInputs) {
+      if (!input.reportValidity()) return; // stops here and shows the browser's native validation bubble
+    }
+    goToStep(2);
+  });
+
+  backBtn.addEventListener("click", () => goToStep(1));
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
