@@ -197,7 +197,7 @@ scrambled version of it.
    | `PAYSTACK_SECRET_KEY` | `sk_test_...` from Step 1 — only needed once you switch `PAYMENT_METHOD` to `paystack` |
    | `RESEND_API_KEY` | from Step 3 |
    | `EMAIL_FROM` | `onboarding@resend.dev` (or your verified domain address) |
-   | `WHATSAPP_GROUP_LINK` | `https://chat.whatsapp.com/FLFZW0zvIhYCNpJoqptmsS` |
+   | `WHATSAPP_GROUP_LINK` | your program's real group invite link (get a fresh one from WhatsApp: group info → Invite via link) |
    | `ADMIN_EMAIL` | the email you'll log into the admin panel with |
    | `ADMIN_PASSWORD_HASH` | the scrambled string from Step 4 |
    | `ADMIN_JWT_SECRET` | any long random text, e.g. mash your keyboard for 40+ characters |
