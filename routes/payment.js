@@ -50,7 +50,7 @@ router.get("/verify", async (req, res) => {
     if (!registration) return res.status(404).json({ error: "Registration not found." });
 
     if (registration.status !== "paid") {
-      if (PAYMENT_METHOD === "bank_transfer") {
+      if (registration.payment_method === "bank_transfer") {
         // Nothing to check with a provider — only the admin marking it paid
         // (after seeing the transfer land) moves this forward.
         return res.json({
@@ -66,7 +66,7 @@ router.get("/verify", async (req, res) => {
         return res.json({ status: "not_paid" });
       }
       // Amount actually charged must match what we asked for.
-      if (!result.demo && result.amountKobo !== registration.total_kobo) {
+      if (!result.demo && (result.amountKobo !== registration.total_kobo || result.currency !== "NGN")) {
         return res.status(400).json({ error: "Payment amount mismatch — please contact us." });
       }
     }
@@ -121,14 +121,14 @@ router.post("/webhooks/paystack", async (req, res) => {
     if (event.event === "charge.success") {
       const reference = event.data.reference;
       const registration = await db.getRegistrationByReference(reference);
-      if (registration && event.data.amount === registration.total_kobo) {
+      if (registration && registration.payment_method === "paystack" && event.data.currency === "NGN" && event.data.domain === "live" && event.data.amount === registration.total_kobo) {
         await confirmAndNotify(registration);
       }
     }
     res.sendStatus(200);
   } catch (err) {
     console.error("Webhook error:", err.message);
-    res.sendStatus(200); // acknowledge anyway so Paystack doesn't hammer retries on our bug
+    res.sendStatus(500); // Let Paystack retry failed processing.
   }
 });
 
