@@ -11,4 +11,6 @@ const BANK_DETAILS = {
   accountName: process.env.BANK_ACCOUNT_NAME || "",
 };
 
-module.exports = { PAYMENT_METHOD, BANK_DETAILS };
+const PAYMENT_METHODS = ['bank_transfer'];
+if ((process.env.PAYSTACK_SECRET_KEY || '').trim().startsWith('sk_live_')) PAYMENT_METHODS.unshift('paystack');
+module.exports = { PAYMENT_METHOD, BANK_DETAILS, PAYMENT_METHODS };
