@@ -27,8 +27,8 @@ async function insertRegistration(reg) {
   const { rows } = await pool.query(
     `insert into registrations
       (full_name, email, whatsapp, address, kin_name, kin_phone, course_ids,
-       subtotal_kobo, reg_fee_kobo, discount_kobo, total_kobo, paystack_reference, status)
-     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'pending')
+       subtotal_kobo, reg_fee_kobo, discount_kobo, total_kobo, paystack_reference, payment_method, status)
+     values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'pending')
      returning *`,
     [
       reg.full_name,
@@ -43,6 +43,7 @@ async function insertRegistration(reg) {
       reg.discount_kobo,
       reg.total_kobo,
       reg.paystack_reference,
+      reg.payment_method,
     ]
   );
   return rows[0];
@@ -51,7 +52,7 @@ async function insertRegistration(reg) {
 // Excludes the heavy receipt_data blob — callers that need the actual file
 // use getReceipt() below instead. Keeps every routine status check light.
 const LIST_COLUMNS = `id, full_name, email, whatsapp, address, kin_name, kin_phone, course_ids,
-  subtotal_kobo, reg_fee_kobo, discount_kobo, total_kobo, paystack_reference, status,
+  subtotal_kobo, reg_fee_kobo, discount_kobo, total_kobo, paystack_reference, payment_method, status,
   created_at, paid_at, confirmation_email_sent_at, (receipt_data is not null) as has_receipt`;
 
 async function getRegistrationByReference(reference) {
