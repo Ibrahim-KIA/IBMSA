@@ -3,12 +3,12 @@ const crypto = require("crypto");
 const { COURSES, CONFIG, computeTotals } = require("../src/courses");
 const db = require("../src/db");
 const paystack = require("../src/paystack");
-const { PAYMENT_METHOD, BANK_DETAILS } = require("../src/payment-config");
+const { PAYMENT_METHOD, BANK_DETAILS, PAYMENT_METHODS } = require("../src/payment-config");
 
 const router = express.Router();
 
 router.get("/courses", (req, res) => {
-  res.json({ courses: COURSES, config: { ...CONFIG, paymentMethod: PAYMENT_METHOD } });
+  res.json({ courses: COURSES, config: { ...CONFIG, paymentMethod: PAYMENT_METHOD, paymentMethods: PAYMENT_METHODS } });
 });
 
 function normalizePhone(raw) {
@@ -25,8 +25,9 @@ function isValidEmail(email) {
 
 router.post("/register", async (req, res) => {
   try {
-    const { fullName, email, whatsapp, address, kinName, kinPhone, courseIds, agree } = req.body || {};
+    const { fullName, email, whatsapp, address, kinName, kinPhone, courseIds, agree, paymentMethod = "bank_transfer" } = req.body || {};
 
+    if (!PAYMENT_METHODS.includes(paymentMethod)) return res.status(400).json({ error: 'Please choose an available payment method.' });
     const missing = [];
     if (!fullName || !String(fullName).trim()) missing.push("Full Name");
     if (!isValidEmail(email)) missing.push("a valid Email Address");
@@ -47,6 +48,7 @@ router.post("/register", async (req, res) => {
     const reference = `IBMSA-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`;
 
     await db.insertRegistration({
+      payment_method: paymentMethod,
       full_name: String(fullName).trim(),
       email: String(email).trim().toLowerCase(),
       whatsapp: normalizePhone(whatsapp),
@@ -61,7 +63,7 @@ router.post("/register", async (req, res) => {
       paystack_reference: reference,
     });
 
-    if (PAYMENT_METHOD === "bank_transfer") {
+    if (paymentMethod === "bank_transfer") {
       // No external payment provider — the school confirms each transfer by
       // hand in the admin panel. Nothing is marked paid automatically.
       return res.json({
@@ -82,7 +84,7 @@ router.post("/register", async (req, res) => {
 
     res.json({ paymentMethod: "paystack", authorizationUrl, reference });
   } catch (err) {
-    res.status(400).json({ error: err.message || "Registration failed." });
+    res.status(400).json({ error: /tenant|ENOTFOUND|connection|password|postgres/i.test(err.message || "") ? "Registration is temporarily unavailable. Please try again shortly or contact WhatsApp support." : (err.message || "Registration failed.") });
   }
 });
 
