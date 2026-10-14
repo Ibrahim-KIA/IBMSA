@@ -46,7 +46,7 @@ async function verifyTransaction(reference) {
     throw new Error(data.message || "Could not verify payment with Paystack.");
   }
   return {
-    success: data.data.status === "success",
+    success: data.data.status === "success" && data.data.domain === "live",
     amountKobo: data.data.amount,
     currency: data.data.currency,
     demo: false,
@@ -55,7 +55,7 @@ async function verifyTransaction(reference) {
 
 // Confirms a webhook request really came from Paystack, using the raw request body.
 function verifyWebhookSignature(rawBody, signatureHeader) {
-  if (isDemo) return true;
+  if (isDemo) return false;
   const hash = crypto.createHmac("sha512", SECRET_KEY).update(rawBody).digest("hex");
   return hash === signatureHeader;
 }
