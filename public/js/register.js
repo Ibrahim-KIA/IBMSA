@@ -86,11 +86,13 @@
     updateSummary();
     if (config.programStartDateLabel) startDateInline.textContent = config.programStartDateLabel;
 
+    const choices = document.getElementById('payment-methods');
+    choices.innerHTML = (config.paymentMethods || ['bank_transfer']).map((method,i) => '<label class="flex items-start gap-3 rounded-xl border p-4 cursor-pointer"><input class="mt-1" type="radio" name="paymentMethod" value="'+method+'" '+(i===0?'checked':'')+' /><span><strong>'+ (method==='paystack'?'Pay online with Paystack':'Direct bank transfer')+'</strong><span class="block text-sm text-gray-500">'+(method==='paystack'?'Choose an available option at Paystack checkout. Your place is confirmed after payment verification.':'Transfer to the school account, upload your receipt, and wait for the school to confirm receipt of your money.')+'</span></span></label>').join('');
     const note = document.getElementById("payment-method-note");
-    if (config.paymentMethod === "bank_transfer") {
+    if (!config.paymentMethods?.includes("paystack")) {
       note.textContent = "You'll get our bank details on the next page — your spot is confirmed once we see your transfer.";
     } else {
-      note.textContent = "Payments are processed securely by Paystack.";
+      note.textContent = "Choose Paystack for online payment or direct bank transfer for manual confirmation.";
     }
   }
 
@@ -178,6 +180,7 @@
       kinPhone: fd.get("kinPhone"),
       courseIds,
       agree: true,
+      paymentMethod: fd.get("paymentMethod"),
     };
 
     submitBtn.disabled = true;
