@@ -47,3 +47,6 @@ create table if not exists curriculum_progress (
   updated_at timestamptz not null default now(),
   primary key (course_id, week_number)
 );
+
+-- Existing registrations used direct bank transfer.
+alter table registrations add column if not exists payment_method text not null default 'bank_transfer' check (payment_method in ('bank_transfer','paystack'));
