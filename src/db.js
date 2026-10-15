@@ -53,7 +53,7 @@ async function insertRegistration(reg) {
 // use getReceipt() below instead. Keeps every routine status check light.
 const LIST_COLUMNS = `id, full_name, email, whatsapp, address, kin_name, kin_phone, course_ids,
   subtotal_kobo, reg_fee_kobo, discount_kobo, total_kobo, paystack_reference, payment_method, status,
-  created_at, paid_at, confirmation_email_sent_at, (receipt_data is not null) as has_receipt`;
+  created_at, paid_at, confirmation_email_sent_at, amount_received_kobo, payment_covered_by, payment_note, (receipt_data is not null) as has_receipt`;
 
 async function getRegistrationByReference(reference) {
   if (isDemo) {
