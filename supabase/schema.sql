@@ -50,3 +50,8 @@ create table if not exists curriculum_progress (
 
 -- Existing registrations used direct bank transfer.
 alter table registrations add column if not exists payment_method text not null default 'bank_transfer' check (payment_method in ('bank_transfer','paystack'));
+
+-- Shared payments preserve original checkout totals; these fields track actual receipts.
+alter table public.registrations add column if not exists amount_received_kobo integer check (amount_received_kobo >= 0);
+alter table public.registrations add column if not exists payment_covered_by uuid references public.registrations(id);
+alter table public.registrations add column if not exists payment_note text;
