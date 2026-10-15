@@ -13,6 +13,7 @@
   function nairaFromKobo(kobo) {
     return "₦" + (kobo / 100).toLocaleString("en-NG");
   }
+  function escapeHtml(value) { return String(value || "").replace(/[&<>"\u0027]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","\u0027":"&#39;"}[ch])); }
   function waLink(phone, text) {
     const digits = phone.replace(/[^\d]/g, "");
     return `https://wa.me/${digits}?text=${encodeURIComponent(text || "")}`;
@@ -90,6 +91,7 @@
         <p class="text-gray-500 text-sm">Pending Payment</p>
         <p class="text-2xl font-bold text-amber-600">${totalPending}</p>
       </div>`;
+    html += '<div class="bg-white rounded-xl shadow-sm p-4"><p class="text-gray-500 text-sm">Total money received</p><p class="text-2xl font-bold text-[var(--ibm-green)]">' + nairaFromKobo(totals.receivedKobo || 0) + '</p></div>';
     const perCourse = Object.entries(summary)
       .filter(([, v]) => v.paid > 0 || v.pending > 0)
       .map(([, v]) => `<div class="flex justify-between"><span>${v.name}</span><span class="font-semibold">${v.paid}</span></div>`)
@@ -124,7 +126,7 @@
         <td class="py-2 pr-3">${r.email}</td>
         <td class="py-2 pr-3"><a class="text-[var(--ibm-green)] underline" href="${waLink(r.whatsapp, `Hi ${r.fullName}, this is IBM School regarding your registration.`)}" target="_blank" rel="noopener">${r.whatsapp}</a></td>
         <td class="py-2 pr-3">${r.courses.join(", ")}</td>
-        <td class="py-2 pr-3">${nairaFromKobo(r.totalKobo)}</td>
+        <td class="py-2 pr-3">${r.paymentCoveredBy ? "Covered by shared payment" : nairaFromKobo(r.status === "paid" ? (r.amountReceivedKobo ?? r.totalKobo) : r.totalKobo)}${r.paymentNote ? `<p class="text-xs text-gray-500 mt-1 max-w-xs">${escapeHtml(r.paymentNote)}</p>` : ""}</td>
         <td class="py-2 pr-3">
           <span class="px-2 py-1 rounded-full text-xs font-semibold ${r.status === "paid" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}">${r.status}</span>
         </td>
