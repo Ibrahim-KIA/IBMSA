@@ -29,9 +29,9 @@ router.get("/registrations", auth.requireAdmin, async (req, res) => {
   const summary = {};
   for (const c of COURSES) summary[c.id] = { name: c.name, paid: 0, pending: 0 };
   const allRows = await db.listRegistrations({});
-  const totals = { paid: 0, pending: 0 };
+  const totals = { paid: 0, pending: 0, receivedKobo: 0 };
   for (const row of allRows) {
-    if (row.status === "paid") totals.paid += 1;
+    if (row.status === "paid") { totals.paid += 1; totals.receivedKobo += row.amount_received_kobo ?? row.total_kobo; }
     else if (row.status === "pending") totals.pending += 1;
     for (const id of row.course_ids) {
       if (!summary[id]) continue;
@@ -53,6 +53,9 @@ router.get("/registrations", auth.requireAdmin, async (req, res) => {
       kinPhone: r.kin_phone,
       courses: r.course_ids.map((id) => getCourseById(id)?.name || id),
       totalKobo: r.total_kobo,
+      amountReceivedKobo: r.status === "paid" ? (r.amount_received_kobo ?? r.total_kobo) : 0,
+      paymentCoveredBy: r.payment_covered_by,
+      paymentNote: r.payment_note,
       status: r.status,
       createdAt: r.created_at,
       paidAt: r.paid_at,
@@ -64,13 +67,13 @@ router.get("/registrations", auth.requireAdmin, async (req, res) => {
 
 router.get("/export.csv", auth.requireAdmin, async (req, res) => {
   const rows = await db.listRegistrations({ status: "paid" });
-  const header = "Full Name,Email,WhatsApp,Address,Next of Kin,Kin Phone,Courses,Total (NGN),Paid At\n";
+  const header = "Full Name,Email,WhatsApp,Address,Next of Kin,Kin Phone,Courses,Original Checkout Total (NGN),Paid At,Amount Received (NGN),Shared Payment Note\n";
   const body = rows
     .map((r) => {
       const courses = r.course_ids.map((id) => getCourseById(id)?.name || id).join(" | ");
       const total = (r.total_kobo / 100).toFixed(0);
       const esc = (v) => `"${String(v || "").replace(/"/g, '""')}"`;
-      return [esc(r.full_name), esc(r.email), esc(r.whatsapp), esc(r.address), esc(r.kin_name), esc(r.kin_phone), esc(courses), total, esc(r.paid_at)].join(",");
+      return [esc(r.full_name), esc(r.email), esc(r.whatsapp), esc(r.address), esc(r.kin_name), esc(r.kin_phone), esc(courses), total, esc(r.paid_at), ((r.amount_received_kobo ?? r.total_kobo) / 100).toFixed(0), esc(r.payment_note)].join(",");
     })
     .join("\n");
   res.setHeader("Content-Type", "text/csv");
